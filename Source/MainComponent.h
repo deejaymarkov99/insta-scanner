@@ -20,6 +20,7 @@
 #include <vector>
 #include <limits>
 #include "Sine.h"
+#include "ColourNote.h"
 
 //==============================================================================
 /*
@@ -62,9 +63,17 @@ class MainComponent    : public AudioAppComponent,
 public:
     MainComponent(Image image);
     ~MainComponent();
+    
+    enum LensMovingState { N, S, E, W, NE, NW, SE, SW, HALT };
+    
+    enum AudioState { ON, OFF };
 
     void paint (Graphics&) override;
     //void resized() override;
+    
+    void browseForImage();
+    
+    void updateLensFreqs();
     
     void buttonClicked (Button* button) override;
     
@@ -74,19 +83,22 @@ public:
     
     void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override;
     
-    //float getCDistance(std::tuple <int, int, int> from, std::tuple <int, int, int, float> to);
-    
-    enum LensMovingState { N, S, E, W, NE, NW, SE, SW, HALT };
+    float getCDistance(Colour from, Colour to);
    
     class Lens : public Component, public Timer
     {
     public:
         
-        Lens(int *x, int *y, LensMovingState *s, Sine *m) {
+        Lens(int *x, int *y, LensMovingState *s, Sine *l, Sine *lm, Sine *m, Sine *hm, Sine *h)
+        {
             lensX = x;
             lensY = y;
             state = s;
+            low = l;
+            lomid = lm;
             mid = m;
+            himid = hm;
+            high = h;
             
             freqs = new float*[440];
             for(int i = 0; i < 440; i++){
@@ -118,7 +130,11 @@ public:
             
             LensMovingState s = *state;
             
-            mid->setFrequency(3*freqs[y][x]);
+            low->setFrequency(freqs[y][x]);
+            lomid->setFrequency(2*freqs[y][x+44]);
+            mid->setFrequency(3*freqs[y+22][x+22]);
+            himid->setFrequency(4*freqs[y+44][x]);
+            high->setFrequency(5*freqs[y+44][x+44]);
             
             switch(s)
             {
@@ -244,7 +260,7 @@ public:
         int *lensX;
         int *lensY;
         LensMovingState *state;
-        Sine *mid;
+        Sine *low, *lomid, *mid, *himid, *high;
         float **freqs;
         
     };
@@ -286,6 +302,7 @@ private:
     int lensY;
     
     LensMovingState LensState;
+    AudioState Audio;
     
     Image img;
     
@@ -296,6 +313,9 @@ private:
     
     Lens lens;
     Eyepiece eye;
+    
+    ShapeButton startStopButton;
+    ShapeButton browseButton;
     
     bool upPressed = false;
     bool downPressed = false;
@@ -310,7 +330,9 @@ private:
     
     Colour t;
     
-    Sine mid;
+    std::vector<ColourNote> colours;
+    
+    Sine low, lomid, mid, himid, high;
     
     float gain;
     int samplingRate, numCh;

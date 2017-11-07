@@ -14,14 +14,15 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "MainComponent.h"
 
-
 //==============================================================================
 MainComponent::MainComponent(Image image) : upButton("up", 0.75, Colours::darkblue),
                                  downButton("down", 0.25, Colours::darkblue),
                                  leftButton("left", 0.5,Colours::darkblue),
                                  rightButton("right", 0.0, Colours::darkblue),
-                                 lens(&lensX, &lensY, &LensState, &mid),
-                                 eye(&lensX, &lensY, image)
+                                 lens(&lensX, &lensY, &LensState, &low, &lomid, &mid, &himid, &high),
+                                 eye(&lensX, &lensY, image),
+                                 startStopButton("start", Colour(0,180,0), Colour(0,180,0), Colour(180,0,0)),
+                                 browseButton("browse", Colour(0,0,180), Colour(0,0,180), Colour(0,0,180))
 {
     //initialize position of the lens
     lensX = 0;
@@ -33,43 +34,66 @@ MainComponent::MainComponent(Image image) : upButton("up", 0.75, Colours::darkbl
     //load the image
     img = image;
     
-    //freqs = new float*[440];
+    ColourNote white;
+    white.colour = Colour(255,255,255);
+    white.freq = 0.00;
     
-    //check which colour it is and assign the appropriate frequency in hertz
-    Colour white =     Colour(255,255,255);
-    Colour black =     Colour(0,0,0);
-    Colour magent =   Colour(255,0,128);
-    Colour violet =    Colour(128,0,255);
-    Colour blue =      Colour(0,0,255);
-    Colour cerulean =  Colour(0,128,255);
-    Colour turquoise = Colour(0,255,255);
-    Colour teal = Colour(0,255,128);
-    Colour green =     Colour(0,255,0);
-    Colour lime = Colour(128,255,0);
-    Colour yellow =    Colour(255,255,0);
-    Colour orange =    Colour(255,128,0);
-    Colour red =       Colour(255,0,0);
+    ColourNote black;
+    black.colour = Colour(0,0,0);
+    black.freq = 0.00;
     
-    /*std::tuple <int, int, int, float> white, black, magenta, violet, blue, cerulean, turquoise, teal, green, lime, yellow, orange, red, purple;
+    ColourNote magenta;
+    magenta.colour = Colour(255,0,128);
+    magenta.freq = 55.00;
     
-    std::tuple <int, int, int> currentColour;
+    ColourNote violet;
+    violet.colour = Colour(128,0,255);
+    violet.freq = 61.74;
     
-    white =     std::make_tuple(255,255,255,0.00);
-    black =     std::make_tuple(0,0,0,0.00);
-    magenta =   std::make_tuple(255,0,128,55.00);
-    violet =    std::make_tuple(128,0,255,61.74);
-    blue =      std::make_tuple(0,0,255,92.50);
-    cerulean =  std::make_tuple(0,128,255,69.30);
-    turquoise = std::make_tuple(0,255,255,103.83);
-    teal =      std::make_tuple(0,255,128,77.78);
-    green =     std::make_tuple(0,255,0,58.27);
-    lime =      std::make_tuple(128,255,0,87.31);
-    yellow =    std::make_tuple(255,255,0,65.41);
-    orange =    std::make_tuple(255,128,0,98.00);
-    red =       std::make_tuple(255,0,0,73.42);
-    purple =    std::make_tuple(255,0,255,82.41);
+    ColourNote blue;
+    blue.colour = Colour(0,0,255);
+    blue.freq = 92.50;
     
-    std::vector<std::tuple <int, int, int, float>> colours;
+    ColourNote cerulean;
+    cerulean.colour = Colour(0,128,255);
+    cerulean.freq = 69.30;
+    
+    ColourNote turquoise;
+    turquoise.colour = Colour(0,255,255);
+    turquoise.freq = 103.83;
+    
+    ColourNote teal;
+    teal.colour = Colour(0,255,128);
+    teal.freq = 77.78;
+    
+    ColourNote green;
+    green.colour = Colour(0,255,0);
+    green.freq = 58.27;
+    
+    ColourNote lime;
+    lime.colour = Colour(128,255,0);
+    lime.freq = 87.31;
+    
+    ColourNote yellow;
+    yellow.colour = Colour(255,255,0);
+    yellow.freq = 65.41;
+    
+    ColourNote orange;
+    orange.colour = Colour(255,128,0);
+    orange.freq = 98.00;
+    
+    ColourNote red;
+    red.colour = Colour(255,0,0);
+    red.freq = 73.42;
+    
+    ColourNote purple;
+    purple.colour = Colour(255,0,255);
+    purple.freq = 82.41;
+    
+    //Colour currentColour;
+    //ColourNote compColour;
+    
+    //std::vector<ColourNote> colours;
     
     colours.push_back(white);
     colours.push_back(black);
@@ -86,7 +110,7 @@ MainComponent::MainComponent(Image image) : upButton("up", 0.75, Colours::darkbl
     colours.push_back(red);
     colours.push_back(purple);
     
-    std::vector<std::tuple <int, int, int, float>>::iterator it;*/
+    /*std::vector<ColourNote>::iterator it;
     
     for(int i = 0; i < 440; i++){
         for(int j = 0; j < 440; j++) {
@@ -96,160 +120,46 @@ MainComponent::MainComponent(Image image) : upButton("up", 0.75, Colours::darkbl
             uint8 bComp = pixCol.getBlue();
             uint8 gComp = pixCol.getGreen();
             
-            int red = int(rComp);
+            /*int red = int(rComp);
             int blue = int(bComp);
-            int green = int(gComp);
+            int green = int(gComp);*/
             
             /*
             int r = int(rComp);
             int b = int(bComp);
             int g = int(gComp);
             
-            currentColour = std::make_tuple(r,g,b);
+            currentColour = Colour(r,g,b);
             
             float freq = 0.00;
             float minDist = std::numeric_limits<float>::infinity();
             float dist;
             
             for(it=colours.begin() ; it < colours.end(); it++) {
-                dist = getCDistance(currentColour, *it);
+                compColour = *it;
+                dist = getCDistance(currentColour, compColour.colour);
                 if(dist < minDist) {
                     minDist = dist;
-                    freq = std::get<3>(*it);
+                    freq = compColour.freq;
                 }
             }
             
-            lens.setFreqsAt(i,j,freq);*/
-            
-            //filter the colour to the one of the chosen 12
-            if(red <= 85) {
-                red = 0;
-            } else if (red <= 170) {
-                red = 128;
-            } else {
-                red = 255;
-            }
-            
-            if(green <= 85) {
-                green = 0;
-            } else if (green <= 170) {
-                green = 128;
-            } else {
-                green = 255;
-            }
-            
-            if(blue <= 85) {
-                blue = 0;
-            } else if (blue <= 170) {
-                blue = 128;
-            } else {
-                blue = 255;
-            }
-            
-            int a=rand()%2;
-            
-            if(red == 0 && green == 0 && blue == 0) {
-                red = 255;
-                green = 255;
-                blue = 255;
-            } else if(red == 128 && green == 128 && blue == 128) {
-                red = 255;
-                green = 255;
-                blue = 255;
-            } else if(red == 128 && green == 0 && blue == 0) {
-                red = 255;
-            } else if(red == 0 && green == 128 && blue == 0) {
-                green = 255;
-            } else if(red == 0 && green == 0 && blue == 128) {
-                blue = 255;
-            } else if(red == 128 && green == 128 && blue == 0) {
-                if (a == 0) {
-                    red = 255;
-                } else {
-                    green = 255;
-                }
-            } else if(red == 0 && green == 128 && blue == 128) {
-                if (a == 0) {
-                    green = 255;
-                } else {
-                    blue = 255;
-                }
-            } else if(red == 128 && green == 0 && blue == 128) {
-                if (a == 0) {
-                    red = 255;
-                } else {
-                    blue = 255;
-                }
-            } else if(red == 128 && green == 128 && blue == 255) {
-                if (a == 0) {
-                    red = 0;
-                } else {
-                    green = 0;
-                }
-            } else if(red == 255 && green == 128 && blue == 128) {
-                if (a == 0) {
-                    green = 0;
-                } else {
-                    blue = 0;
-                }
-            } else if(red == 128 && green == 255 && blue == 128) {
-                if (a == 0) {
-                    red = 0;
-                } else {
-                    blue = 0;
-                }
-            } else if(red == 255 && green == 128 && blue == 255) {
-                green = 0;
-            } else if(red == 255 && green == 255 && blue == 128) {
-                blue = 0;
-            } else if(red == 255 && green == 255 && blue == 128) {
-                blue = 0;
-            } else {
-                red = 255;
-                green = 255;
-                blue = 255;
-            }
-            
-            //check which colour it is and assign the appropriate frequency in hertz
-            if (red == 255 && green == 255 && blue == 255){ //White, Silence
-                lens.setFreqsAt(i,j,0.00);
-            } else if(red == 255 && green == 0 && blue == 128){//Reddish Purple, A
-                lens.setFreqsAt(i,j,55.00);
-            } else if (red == 255 && green == 0 && blue == 255) {//Purple, E
-                lens.setFreqsAt(i,j,82.41);
-            } else if (red == 128 && green == 0 && blue == 255) {//Violet, B
-                lens.setFreqsAt(i,j,61.74);
-            } else if (red == 0 && green == 0 && blue == 255) {//Blue, F#/Gb
-                lens.setFreqsAt(i,j,92.50);
-            } else if (red == 0 && green == 128 && blue == 255) {//Turquoise Blue, C#/Db
-                lens.setFreqsAt(i,j,69.30);
-            } else if (red == 0 && green == 255 && blue == 255) {//Turquoise, G#/Ab
-                lens.setFreqsAt(i,j,103.83);
-            } else if (red == 0 && green == 255 && blue == 128) {//Turquoise Green, D#/Eb
-                lens.setFreqsAt(i,j,77.78);
-            } else if (red == 0 && green == 255 && blue == 0) {//Green, A#/Bb
-                lens.setFreqsAt(i,j,58.27);
-            } else if (red == 128 && green == 255 && blue == 0) {//Lime Green, F
-                lens.setFreqsAt(i,j,87.31);
-            } else if (red == 255 && green == 255 && blue == 0) {//Yellow, C
-                lens.setFreqsAt(i,j,65.41);
-            } else if (red == 255 && green == 128 && blue == 0) {//Orange, G
-                lens.setFreqsAt(i,j,98.00);
-            } else {//Red, D
-                lens.setFreqsAt(i,j,73.42);
-            }
+            lens.setFreqsAt(i,j,freq);
         }
-    }
+    }*/
+    
+    updateLensFreqs();
     
     addAndMakeVisible (lens);
     lens.setColour(0x1000100, Colours::darkblue);
     lens.setBounds(663, 45, 440, 440);
     
-    lens.startTimer(20);
+    //lens.startTimerHz(samplingRate);
     
     addAndMakeVisible(eye);
     eye.setBounds(90, 225, 440, 440);
-    eye.startTimer(20);
+    
+    //eye.startTimerHz(samplingRate);
     
     //Initialize Arrow Buttons
     addAndMakeVisible (upButton);
@@ -294,10 +204,28 @@ MainComponent::MainComponent(Image image) : upButton("up", 0.75, Colours::darkbl
     highButton.setColour(0x1000100, Colours::darkblue);
     highButton.setButtonText("H");
     
+    Path circle;
+    circle.addEllipse(0.00,0.00,50.00,50.00);
+    
+    Path triangle;
+    triangle.addTriangle(0, 0, 20, 0, 10, 20);
+    
+    Audio = OFF;
+    
+    addAndMakeVisible (startStopButton);
+    startStopButton.setShape(circle, true, true, false);
+    startStopButton.setBounds(283, 84, 50, 50);
+    startStopButton.addListener(this);
+    
+    addAndMakeVisible (browseButton);
+    browseButton.setShape(triangle, true, true, false);
+    browseButton.setBounds(800, 6, 20, 20);
+    browseButton.addListener(this);
+    
     setSize (1146, 708);
     
     numCh = 2;
-    gain = 0.5;
+    gain = 0.25;
     setAudioChannels (0, numCh); // no inputs, one output
 }
 
@@ -322,10 +250,82 @@ void MainComponent::resized()
 
 }*/
 
+void MainComponent::browseForImage()
+{
+    
+    FileChooser myChooser ("Please select the image you want to load...",
+                           File::getSpecialLocation (File::userHomeDirectory),
+                           "*.jpg");
+    
+    if (myChooser.browseForFileToOpen())
+    {
+        File imageFile (myChooser.getResult());
+        img = ImageFileFormat::loadFrom(imageFile);
+    }
+    
+    updateLensFreqs();
+    
+}
+
+
+void MainComponent::updateLensFreqs()
+{
+    Colour currentColour;
+    ColourNote compColour;
+    
+    std::vector<ColourNote>::iterator it;
+    
+    for(int i = 0; i < 440; i++){
+        for(int j = 0; j < 440; j++) {
+            //get the colour at pixel (j,i) and split into red, green, and blue components
+            Colour pixCol = img.getPixelAt(j, i);
+            uint8 rComp = pixCol.getRed();
+            uint8 bComp = pixCol.getBlue();
+            uint8 gComp = pixCol.getGreen();
+            
+            /*int red = int(rComp);
+             int blue = int(bComp);
+             int green = int(gComp);*/
+            
+            
+            int r = int(rComp);
+            int b = int(bComp);
+            int g = int(gComp);
+            
+            currentColour = Colour(r,g,b);
+            
+            float freq = 0.00;
+            float minDist = std::numeric_limits<float>::infinity();
+            float dist;
+            
+            for(it=colours.begin() ; it < colours.end(); it++) {
+                compColour = *it;
+                dist = getCDistance(currentColour, compColour.colour);
+                if(dist < minDist) {
+                    minDist = dist;
+                    freq = compColour.freq;
+                }
+            }
+            
+            lens.setFreqsAt(i,j,freq);
+        }
+    }
+}
+
 void MainComponent::prepareToPlay (int /*samplesPerBlockExpected*/, double sampleRate)
 {
     samplingRate = sampleRate;
+    
+    low.setSamplingRate(sampleRate);
+    lomid.setSamplingRate(sampleRate);
     mid.setSamplingRate(sampleRate);
+    himid.setSamplingRate(sampleRate);
+    high.setSamplingRate(sampleRate);
+    
+    lens.startTimerHz(int(sampleRate*2));
+    eye.startTimerHz(int(sampleRate*2));
+    
+    std::cout << sampleRate;
     
 }
 
@@ -336,29 +336,33 @@ void MainComponent::releaseResources()
 
 void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill)
 {
+    
     // getting the audio output buffer to be filled
-    float* const buffer = bufferToFill.buffer->getWritePointer (0, bufferToFill.startSample);
+    float* const bufferLeft = bufferToFill.buffer->getWritePointer (0, bufferToFill.startSample);
+    
+    float* const bufferRight = bufferToFill.buffer->getWritePointer (1, bufferToFill.startSample);
     
     for (int index = 0; index < bufferToFill.numSamples; ++index)
     {
         float sample = 0;
-        sample += mid.tick();
+        sample += (1.f/5)*(low.tick() + lomid.tick() + mid.tick() + himid.tick() + high.tick());
         
         sample *= gain;
-        buffer[index] = sample;
+        bufferLeft[index] = sample;
+        bufferRight[index] = sample;
     }
 }
 
-/*float getCDistance(std::tuple <int, int, int> from, std::tuple <int, int, int, float> to)
+float MainComponent::getCDistance(Colour from, Colour to)
 {
-    float r = (std::get<0>(from) + std::get<0>(to))/2;
+    float r = (from.getFloatRed() + to.getFloatRed())/2;
     
-    float rDist = (float)(std::get<0>(from) - std::get<0>(to));
-    float gDist = (float)(std::get<1>(from) - std::get<1>(to));
-    float bDist = (float)(std::get<2>(from) - std::get<2>(to));
+    float rDist = (from.getFloatRed() - to.getFloatRed());
+    float gDist = (from.getFloatGreen() - to.getFloatGreen());
+    float bDist = (from.getFloatBlue() - to.getFloatBlue());
     
     return sqrt(((2 + r/256)*pow(rDist,2)) + (4*pow(gDist,2)) + ((2 + (255.f-r)/256)*pow(bDist,2)));
-}*/
+}
 
 void MainComponent::buttonClicked (Button* button)
 {
@@ -497,4 +501,27 @@ void MainComponent::buttonClicked (Button* button)
                 break;
         }
     }
+    
+    if (button == &startStopButton)
+    {
+        switch(Audio) {
+            case ON:
+                startStopButton.setColours(Colour(0,180,0), Colour(0,180,0), Colour(180,0,0));
+                Audio = OFF;
+                browseButton.setEnabled(true);
+                break;
+            case OFF:
+                startStopButton.setColours(Colour(180,0,0), Colour(180,0,0), Colour(0,180,0));
+                Audio = ON;
+                browseButton.setEnabled(false);
+                break;
+        }
+        std::cout << Audio;
+    }
+    
+    if (button == &browseButton)
+    {
+        browseForImage();
+    }
+    
 }

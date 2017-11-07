@@ -9,12 +9,15 @@
 
 
 class Sine{
+
 private:
-    double currentSampleRate, currentAngle, angleDelta;
+
+    double currentSampleRate, currentAngle, currentFrequency, targetFrequency, angleDelta;
     const double PI = 3.1415926535897931;
     
 public:
-    Sine():currentSampleRate(0.0),currentAngle(0.0),angleDelta(0.0){}
+    
+    Sine():currentSampleRate(0.0),currentAngle(0.0),currentFrequency(0.0),targetFrequency(0.0),angleDelta(0.0){}
     
     ~Sine(){}
     
@@ -38,6 +41,7 @@ public:
         currentAngle += angleDelta;
         return currentSample;
     }
+    
 };
 
 

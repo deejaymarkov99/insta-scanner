@@ -61,14 +61,14 @@ public:
     
     
     
-    class MainWindow    : public DocumentWindow
+    class MainWindow    : public DocumentWindow//, public ChangeListener
     {
     public:
         MainWindow (String name)  : DocumentWindow (name,
                                                     Colours::aquamarine,
                                                     DocumentWindow::closeButton | DocumentWindow::minimiseButton)
         {
-            FileChooser myChooser ("Please select the image you want to load...",
+            /*FileChooser myChooser ("Please select the image you want to load...",
                                    File::getSpecialLocation (File::userHomeDirectory),
                                    "*.jpg");
             if (myChooser.browseForFileToOpen())
@@ -82,8 +82,16 @@ public:
                 centreWithSize (getWidth(), getHeight());
                 setResizable(false, false);
                 setVisible (true);
-            }
+            }*/
             
+            Image image (Image::RGB, 440, 440, false);
+            image.clear(Rectangle<int>(440, 440), Colour(255,255,255));
+            
+            setUsingNativeTitleBar (true);
+            setContentOwned (new MainComponent(image), true);
+            centreWithSize (getWidth(), getHeight());
+            setResizable(false, false);
+            setVisible (true);
             
         }
 
