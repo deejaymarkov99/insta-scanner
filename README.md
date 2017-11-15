@@ -5,3 +5,6 @@ within the user with regards to visual, audio, and computer programming arts.
 
 This repo contains the source and library code from an xcode project made on osx. It can be compiled and executed on linux
 and windows machines. Go to https://www.juce.com/ for information on how to run JUCE C++ code.
+
+
+Groundwork complete, full functionality still in progress.
