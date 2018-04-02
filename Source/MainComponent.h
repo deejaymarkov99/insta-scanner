@@ -22,42 +22,8 @@
 #include "Sine.h"
 #include "ColourNote.h"
 
-//==============================================================================
-/*
-*/
-
-/*
- // Example program
- #include <iostream>
- #include <string>
- #include <tuple>
- #include <cmath>
- 
- float getCDistance(std::tuple <int, int, int> from, std::tuple <int, int, int> to) {
- 
- float r = (std::get<0>(from) + std::get<0>(to))/2;
- 
- float rDist = (float)(std::get<0>(from) - std::get<0>(to));
- float gDist = (float)(std::get<1>(from) - std::get<1>(to));
- float bDist = (float)(std::get<2>(from) - std::get<2>(to));
- 
- return sqrt(((2 + r/256)*pow(rDist,2)) + (4*pow(gDist,2)) + ((2 + (255.f-r)/256)*pow(bDist,2)));
- }
- 
- int main()
- {
- std::tuple <int, int, int> c1;
- std::tuple <int, int, int> c2;
- 
- c1 = std::make_tuple(100,100,100);
- c2 = std::make_tuple(250,250,250);
- 
- float x = getCDistance(c1,c2);
- 
- std::cout << x;
- }*/
-
 class MainComponent    : public AudioAppComponent,
+                         //public KeyListener,
                          public Button::Listener
 {
 public:
@@ -75,7 +41,17 @@ public:
     
     void updateLensFreqs();
     
+    void handleUp();
+    
+    void handleDown();
+    
+    void handleRight();
+    
+    void handleLeft();
+    
     void buttonClicked (Button* button) override;
+    
+    bool keyPressed (const KeyPress &key) override;
     
     void prepareToPlay (int /*samplesPerBlockExpected*/, double sampleRate) override;
     
@@ -121,6 +97,7 @@ public:
             int x = *lensX;
             int y = *lensY;
             g.drawRect(x, y, 44, 44, 1);
+            //g.drawRect(x, y, 10, 10, 1);
         }
         
         void timerCallback() override
@@ -130,12 +107,6 @@ public:
             
             LensMovingState s = *state;
             
-            low->setFrequency(freqs[y][x]);
-            lomid->setFrequency(2*freqs[y][x+44]);
-            mid->setFrequency(3*freqs[y+22][x+22]);
-            himid->setFrequency(4*freqs[y+44][x]);
-            high->setFrequency(5*freqs[y+44][x+44]);
-            
             switch(s)
             {
                 case N    :
@@ -143,23 +114,25 @@ public:
                         incUp();
                         repaint();
                     } else {
-                        *state = HALT;
+                        *state = S;
                     }
                     break;
                 case S    :
-                    if(y < 394){
+                    if(y < 396){
                         incDown();
                         repaint();
                     } else {
-                        *state = HALT;
+                        y = 395;
+                        *state = N;
                     }
                     break;
                 case E    :
-                    if(x < 394){
+                    if(x < 396){
                         incRight();
                         repaint();
                     } else {
-                        *state = HALT;
+                        x = 395;
+                        *state = W;
                     }
                     break;
                 case W    :
@@ -167,20 +140,22 @@ public:
                         incLeft();
                         repaint();
                     } else {
-                        *state = HALT;
+                        *state = E;
                     }
                     break;
                 case NE   :
-                    if(x < 394 && y > 0){
+                    if(x < 396 && y > 0){
                         incRight();
                         incUp();
                         repaint();
-                    } else if (x < 394) {
-                        *state = E;
+                    } else if (x < 396) {
+                        *state = SE;
                     } else if (y > 0) {
-                        *state = N;
+                        x = 395;
+                        *state = NW;
                     }
                     else {
+                        x = 395;
                         *state = HALT;
                     }
                     break;
@@ -190,45 +165,59 @@ public:
                         incUp();
                         repaint();
                     } else if (x > 0) {
-                        *state = W;
+                        *state = SW;
                     } else if (y > 0) {
-                        *state = N;
+                        *state = NE;
                     }
                     else {
                         *state = HALT;
                     }
                     break;
                 case SE   :
-                    if(x < 394 && y < 394){
+                    if(x < 396 && y < 396){
                         incRight();
                         incDown();
                         repaint();
-                    } else if (x < 394) {
-                        *state = E;
-                    } else if (y < 394) {
-                        *state = S;
+                    } else if (x < 396) {
+                        *state = NE;
+                    } else if (y < 396) {
+                        x = 395;
+                        *state = SW;
                     }
                     else {
+                        x = 395;
+                        y = 395;
                         *state = HALT;
                     }
                     break;
                 case SW   :
-                    if(x > 0 && y < 394){
+                    if(x > 0 && y < 396){
                         incLeft();
                         incDown();
                         repaint();
                     } else if (x > 0) {
-                        *state = W;
-                    } else if (y < 394) {
-                        *state = S;
+                        *state = NW;
+                    } else if (y < 396) {
+                        *state = SE;
                     }
                     else {
+                        y = 395;
                         *state = HALT;
                     }
                     break;
                 case HALT :
                     break;
             }
+            
+            if (y == 396) {
+                y = 395;
+            }
+            
+            low->setFrequency(freqs[y][x+3]);
+            lomid->setFrequency(2*freqs[y+13][x+29]);
+            mid->setFrequency(4*freqs[y+22][x+27]);
+            himid->setFrequency(8*freqs[y+44][x+7]);
+            high->setFrequency(16*freqs[y+36][x+31]);
             
         }
         
@@ -272,14 +261,20 @@ public:
         Eyepiece(int *x, int *y, Image i) {
             lensX = x;
             lensY = y;
-            img = i;
+            im = i.rescaled(4400,4400);
+        }
+        
+        void setImage(Image i) {
+            im = i.rescaled(4400,4400);
         }
         
         void paint (Graphics& g) override
         {
             int x = *lensX;
             int y = *lensY;
-            g.drawImage(img, 0, 0, 438, 438, x, y, 44, 44);
+            g.drawImage(im, 0, 0, 440, 440, x*10, y*10, 440, 440);
+            //g.drawImageAt(img, 0, 0);
+            //g.drawImage(img, 0, 0, 438, 438, x, y, 10, 10);
         }
         
         void timerCallback() override
@@ -290,7 +285,7 @@ public:
     private:
         int *lensX;
         int *lensY;
-        Image img;
+        Image im;
     };
     
     
