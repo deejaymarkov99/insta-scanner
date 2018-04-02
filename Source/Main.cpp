@@ -59,38 +59,22 @@ public:
         our MainContentComponent class.
     */
     
-    
-    
     class MainWindow    : public DocumentWindow//, public ChangeListener
     {
     public:
         MainWindow (String name)  : DocumentWindow (name,
                                                     Colours::aquamarine,
-                                                    DocumentWindow::closeButton | DocumentWindow::minimiseButton)
+                                                    DocumentWindow::closeButton |
+                                                    DocumentWindow::minimiseButton)
         {
-            /*FileChooser myChooser ("Please select the image you want to load...",
-                                   File::getSpecialLocation (File::userHomeDirectory),
-                                   "*.jpg");
-            if (myChooser.browseForFileToOpen())
-            {
-                File imageFile (myChooser.getResult());
-                Image image = ImageFileFormat::loadFrom(imageFile);
-                
-            
-                setUsingNativeTitleBar (true);
-                setContentOwned (new MainComponent(image), true);
-                centreWithSize (getWidth(), getHeight());
-                setResizable(false, false);
-                setVisible (true);
-            }*/
-            
+            //create blank white canvas to begin with
             Image image (Image::RGB, 440, 440, false);
             image.clear(Rectangle<int>(440, 440), Colour(255,255,255));
             
             setUsingNativeTitleBar (true);
-            setContentOwned (new MainComponent(image), true);
+            setContentOwned (new MainComponent(image), true); //pass the image to MainComponent
             centreWithSize (getWidth(), getHeight());
-            setResizable(false, false);
+            setResizable(false, false); 
             setVisible (true);
             
         }
