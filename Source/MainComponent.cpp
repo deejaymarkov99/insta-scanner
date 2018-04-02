@@ -15,25 +15,28 @@
 #include "MainComponent.h"
 
 //==============================================================================
-MainComponent::MainComponent(Image image) : upButton("up", 0.75, Colours::darkblue),
-                                 downButton("down", 0.25, Colours::darkblue),
-                                 leftButton("left", 0.5,Colours::darkblue),
-                                 rightButton("right", 0.0, Colours::darkblue),
-                                 lens(&lensX, &lensY, &LensState, &low, &lomid, &mid, &himid, &high),
-                                 eye(&lensX, &lensY, image),
-                                 startStopButton("start", Colour(0,180,0), Colour(0,180,0), Colour(180,0,0)),
-                                 browseButton("browse", Colour(0,0,180), Colour(0,0,180), Colour(0,0,180))
+MainComponent::MainComponent(Image image) : upButton(   "up", 0.75, Colours::darkblue),
+                                          downButton( "down", 0.25, Colours::darkblue),
+                                          leftButton( "left",  0.5, Colours::darkblue),
+                                         rightButton("right",  0.0, Colours::darkblue),
+                                                lens(&lensX, &lensY, &LensState, &low, &lomid, &mid, &himid, &high),
+                                                 eye(&lensX, &lensY, image),
+                                     startStopButton("start", Colour(0,180,0), Colour(0,180,0), Colour(180,0,0)),
+                                        browseButton("browse", Colour(0,0,180), Colour(0,0,180), Colour(0,0,180))
 {
+    //MODEL
     //initialize position of the lens
     lensX = 0;
     lensY = 0;
     
+
     //initialize state of lens
     LensState = HALT;
     
     //load the image
     img = image;
     
+    //COLOUR INFO ALL MODEL
     ColourNote white;
     white.colour = Colour(255,255,255);
     white.freq = 0.00;
@@ -90,11 +93,6 @@ MainComponent::MainComponent(Image image) : upButton("up", 0.75, Colours::darkbl
     purple.colour = Colour(255,0,255);
     purple.freq = 82.41;
     
-    //Colour currentColour;
-    //ColourNote compColour;
-    
-    //std::vector<ColourNote> colours;
-    
     colours.push_back(white);
     colours.push_back(black);
     colours.push_back(magenta);
@@ -110,56 +108,16 @@ MainComponent::MainComponent(Image image) : upButton("up", 0.75, Colours::darkbl
     colours.push_back(red);
     colours.push_back(purple);
     
-    /*std::vector<ColourNote>::iterator it;
-    
-    for(int i = 0; i < 440; i++){
-        for(int j = 0; j < 440; j++) {
-            //get the colour at pixel (j,i) and split into red, green, and blue components
-            Colour pixCol = img.getPixelAt(j, i);
-            uint8 rComp = pixCol.getRed();
-            uint8 bComp = pixCol.getBlue();
-            uint8 gComp = pixCol.getGreen();
-            
-            /*int red = int(rComp);
-            int blue = int(bComp);
-            int green = int(gComp);*/
-            
-            /*
-            int r = int(rComp);
-            int b = int(bComp);
-            int g = int(gComp);
-            
-            currentColour = Colour(r,g,b);
-            
-            float freq = 0.00;
-            float minDist = std::numeric_limits<float>::infinity();
-            float dist;
-            
-            for(it=colours.begin() ; it < colours.end(); it++) {
-                compColour = *it;
-                dist = getCDistance(currentColour, compColour.colour);
-                if(dist < minDist) {
-                    minDist = dist;
-                    freq = compColour.freq;
-                }
-            }
-            
-            lens.setFreqsAt(i,j,freq);
-        }
-    }*/
-    
+    //VIEW
     updateLensFreqs();
     
-    addAndMakeVisible (lens);
+    //VIEW
+    addAndMakeVisible(lens);
     lens.setColour(0x1000100, Colours::darkblue);
     lens.setBounds(663, 45, 440, 440);
     
-    //lens.startTimerHz(samplingRate);
-    
     addAndMakeVisible(eye);
     eye.setBounds(90, 225, 440, 440);
-    
-    //eye.startTimerHz(samplingRate);
     
     //Initialize Arrow Buttons
     addAndMakeVisible (upButton);
@@ -210,8 +168,10 @@ MainComponent::MainComponent(Image image) : upButton("up", 0.75, Colours::darkbl
     Path triangle;
     triangle.addTriangle(0, 0, 20, 0, 10, 20);
     
+    //MODEL
     Audio = OFF;
     
+    //VIEW
     addAndMakeVisible (startStopButton);
     startStopButton.setShape(circle, true, true, false);
     startStopButton.setBounds(283, 84, 50, 50);
@@ -220,36 +180,64 @@ MainComponent::MainComponent(Image image) : upButton("up", 0.75, Colours::darkbl
     addAndMakeVisible (browseButton);
     browseButton.setShape(triangle, true, true, false);
     browseButton.setBounds(800, 6, 20, 20);
+    //THIS SHOULD BE CONTROLLER
     browseButton.addListener(this);
     
     setSize (1146, 708);
     
+    std::cout << this->hasKeyboardFocus(false);
+    
+    //MODEL
     numCh = 2;
     gain = 0.25;
-    setAudioChannels (0, numCh); // no inputs, one output
+    
+    //VIEW
+    setAudioChannels (0, numCh); // no inputs, two outputs
 }
 
+//VIEW
 MainComponent::~MainComponent()
 {
     shutdownAudio();
 }
 
+//VIEW
 void MainComponent::paint (Graphics& g)
 {
     g.fillAll (Colours::lightblue);
     g.drawImageAt(img, 663, 45);
+    grabKeyboardFocus();
     
 }
 
-/*
-void MainComponent::resized()
-{
-    // This method is where you should set the bounds of any child
-    // components that your component contains..
-    currentSizeAsString = std::to_string(getWidth()) + " X " + std::to_string(getHeight());
+//CONTROLLER
+bool MainComponent::keyPressed (const KeyPress &key) {
+    
+    if(key.getKeyCode() == 87 || key.getKeyCode() == KeyPress::upKey) {
+        handleUp();
+        return true;
+    }
+    
+    if(key.getKeyCode() == 83 || key.getKeyCode() == KeyPress::downKey) {
+        handleDown();
+        return true;
+    }
+    
+    if(key.getKeyCode() == 68 || key.getKeyCode() == KeyPress::rightKey) {
+        handleRight();
+        return true;
+    }
+    
+    if(key.getKeyCode() == 65 || key.getKeyCode() == KeyPress::leftKey) {
+        handleLeft();
+        return true;
+    }
+    
+    return false;
+    
+}
 
-}*/
-
+//CONTROLLER
 void MainComponent::browseForImage()
 {
     
@@ -261,13 +249,20 @@ void MainComponent::browseForImage()
     {
         File imageFile (myChooser.getResult());
         img = ImageFileFormat::loadFrom(imageFile);
+    
+        
+        updateLensFreqs();
+        eye.setImage(img);
+        lens.repaint();
+        eye.repaint();
+        
     }
     
-    updateLensFreqs();
+    grabKeyboardFocus();
     
 }
 
-
+//MODEL
 void MainComponent::updateLensFreqs()
 {
     Colour currentColour;
@@ -282,11 +277,6 @@ void MainComponent::updateLensFreqs()
             uint8 rComp = pixCol.getRed();
             uint8 bComp = pixCol.getBlue();
             uint8 gComp = pixCol.getGreen();
-            
-            /*int red = int(rComp);
-             int blue = int(bComp);
-             int green = int(gComp);*/
-            
             
             int r = int(rComp);
             int b = int(bComp);
@@ -312,6 +302,7 @@ void MainComponent::updateLensFreqs()
     }
 }
 
+//VIEW
 void MainComponent::prepareToPlay (int /*samplesPerBlockExpected*/, double sampleRate)
 {
     samplingRate = sampleRate;
@@ -322,37 +313,46 @@ void MainComponent::prepareToPlay (int /*samplesPerBlockExpected*/, double sampl
     himid.setSamplingRate(sampleRate);
     high.setSamplingRate(sampleRate);
     
-    lens.startTimerHz(int(sampleRate*2));
-    eye.startTimerHz(int(sampleRate*2));
+    lens.startTimerHz(int(sampleRate/2048));
+    eye.startTimerHz(int(sampleRate/2048));
     
     std::cout << sampleRate;
     
 }
 
+//VIEW
 void MainComponent::releaseResources()
 {
     
 }
 
+//VIEW
 void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill)
 {
     
-    // getting the audio output buffer to be filled
-    float* const bufferLeft = bufferToFill.buffer->getWritePointer (0, bufferToFill.startSample);
-    
-    float* const bufferRight = bufferToFill.buffer->getWritePointer (1, bufferToFill.startSample);
-    
-    for (int index = 0; index < bufferToFill.numSamples; ++index)
+    if (Audio == ON)
     {
-        float sample = 0;
-        sample += (1.f/5)*(low.tick() + lomid.tick() + mid.tick() + himid.tick() + high.tick());
+        // getting the audio output buffer to be filled
+        float* const bufferLeft = bufferToFill.buffer->getWritePointer (0, bufferToFill.startSample);
         
-        sample *= gain;
-        bufferLeft[index] = sample;
-        bufferRight[index] = sample;
+        float* const bufferRight = bufferToFill.buffer->getWritePointer (1, bufferToFill.startSample);
+        
+        //std::cout << bufferToFill.numSamples << "\n";
+        
+        for (int index = 0; index < bufferToFill.numSamples; ++index)
+        {
+            float sample = 0;
+            //sample += (1.f/5)*(low.tick() + lomid.tick() + mid.tick() + himid.tick() + high.tick());
+            
+            sample += low.tick() + (1.f/2)*lomid.tick() + (1.f/4)*mid.tick() + (1.f/8)*himid.tick() + (1.f/16)*high.tick();
+            sample *= gain;
+            bufferLeft[index] = sample;
+            bufferRight[index] = sample;
+        }
     }
 }
 
+//MODEL
 float MainComponent::getCDistance(Colour from, Colour to)
 {
     float r = (from.getFloatRed() + to.getFloatRed())/2;
@@ -364,142 +364,168 @@ float MainComponent::getCDistance(Colour from, Colour to)
     return sqrt(((2 + r/256)*pow(rDist,2)) + (4*pow(gDist,2)) + ((2 + (255.f-r)/256)*pow(bDist,2)));
 }
 
+//MODEL
+void MainComponent::handleUp()
+{
+    switch(LensState)
+    {
+        case N    :
+            LensState = HALT;
+            break;
+        case S    :
+            LensState = N;
+            break;
+        case E    :
+            LensState = NE;
+            break;
+        case W    :
+            LensState = NW;
+            break;
+        case NE   :
+            LensState = E;
+            break;
+        case NW   :
+            LensState = W;
+            break;
+        case SE   :
+            LensState = NE;
+            break;
+        case SW   :
+            LensState = NW;
+            break;
+        case HALT :
+            LensState = N;
+            break;
+    }
+    
+}
+
+void MainComponent::handleDown()
+{
+    switch(LensState)
+    {
+        case N    :
+            LensState = S;
+            break;
+        case S    :
+            LensState = HALT;
+            break;
+        case E    :
+            LensState = SE;
+            break;
+        case W    :
+            LensState = SW;
+            break;
+        case NE   :
+            LensState = SE;
+            break;
+        case NW   :
+            LensState = SW;
+            break;
+        case SE   :
+            LensState = E;
+            break;
+        case SW   :
+            LensState = W;
+            break;
+        case HALT :
+            LensState = S;
+            break;
+    }
+    
+}
+
+void MainComponent::handleLeft()
+{
+    switch(LensState)
+    {
+        case N    :
+            LensState = NW;
+            break;
+        case S    :
+            LensState = SW;
+            break;
+        case E    :
+            LensState = W;
+            break;
+        case W    :
+            LensState = HALT;
+            break;
+        case NE   :
+            LensState = NW;
+            break;
+        case NW   :
+            LensState = N;
+            break;
+        case SE   :
+            LensState = SW;
+            break;
+        case SW   :
+            LensState = S;
+            break;
+        case HALT :
+            LensState = W;
+            break;
+    }
+    
+}
+
+void MainComponent::handleRight()
+{
+    switch(LensState)
+    {
+        case N    :
+            LensState = NE;
+            break;
+        case S    :
+            LensState = SE;
+            break;
+        case E    :
+            LensState = HALT;
+            break;
+        case W    :
+            LensState = E;
+            break;
+        case NE   :
+            LensState = N;
+            break;
+        case NW   :
+            LensState = NE;
+            break;
+        case SE   :
+            LensState = S;
+            break;
+        case SW   :
+            LensState = SE;
+            break;
+        case HALT :
+            LensState = E;
+            break;
+    }
+    
+}
+
+//CONTROLLER
 void MainComponent::buttonClicked (Button* button)
 {
     if (button == &upButton)
     {
-        switch(LensState)
-        {
-            case N    :
-                LensState = HALT;
-                break;
-            case S    :
-                LensState = N;
-                break;
-            case E    :
-                LensState = NE;
-                break;
-            case W    :
-                LensState = NW;
-                break;
-            case NE   :
-                LensState = E;
-                break;
-            case NW   :
-                LensState = W;
-                break;
-            case SE   :
-                LensState = NE;
-                break;
-            case SW   :
-                LensState = NW;
-                break;
-            case HALT :
-                LensState = N;
-                break;
-        }
+        handleUp();
     }
     
     if (button == &downButton)
     {
-        switch(LensState)
-        {
-            case N    :
-                LensState = S;
-                break;
-            case S    :
-                LensState = HALT;
-                break;
-            case E    :
-                LensState = SE;
-                break;
-            case W    :
-                LensState = SW;
-                break;
-            case NE   :
-                LensState = SE;
-                break;
-            case NW   :
-                LensState = SW;
-                break;
-            case SE   :
-                LensState = E;
-                break;
-            case SW   :
-                LensState = W;
-                break;
-            case HALT :
-                LensState = S;
-                break;
-        }
+        handleDown();
     }
     
     if (button == &rightButton)
     {
-        switch(LensState)
-        {
-            case N    :
-                LensState = NE;
-                break;
-            case S    :
-                LensState = SE;
-                break;
-            case E    :
-                LensState = HALT;
-                break;
-            case W    :
-                LensState = E;
-                break;
-            case NE   :
-                LensState = N;
-                break;
-            case NW   :
-                LensState = NE;
-                break;
-            case SE   :
-                LensState = S;
-                break;
-            case SW   :
-                LensState = SE;
-                break;
-            case HALT :
-                LensState = E;
-                break;
-        }
+        handleRight();
     }
     
     if (button == &leftButton)
     {
-        switch(LensState)
-        {
-            case N    :
-                LensState = NW;
-                break;
-            case S    :
-                LensState = SW;
-                break;
-            case E    :
-                LensState = W;
-                break;
-            case W    :
-                LensState = HALT;
-                break;
-            case NE   :
-                LensState = NW;
-                break;
-            case NW   :
-                LensState = N;
-                break;
-            case SE   :
-                LensState = SW;
-                break;
-            case SW   :
-                LensState = S;
-                break;
-            case HALT :
-                LensState = W;
-                break;
-        }
+        handleLeft();
     }
     
     if (button == &startStopButton)
@@ -522,6 +548,7 @@ void MainComponent::buttonClicked (Button* button)
     if (button == &browseButton)
     {
         browseForImage();
+        repaint();
     }
     
 }
