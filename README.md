@@ -5,4 +5,4 @@ within the user with regards to visual, audio, and computer programming arts.
 
 This repo contains the source and library code from an xcode project made on osx. Go to https://www.juce.com/ for information on how to run JUCE C++ code. If you do not want to go through with the hastle of setting up JUCE do not hesitate to contact me directly and I can send you a working executable.
 
-Groundwork complete, full functionality still in progress. Note if you do decide to run the code/get the eecutable from note that the resizing of images does not work yet, so all images uploaded must be jpgs of size 440x440 pixels.
+Groundwork complete, full functionality still in progress. Note if you do decide to run the code/get the executable from me note that the resizing of images does not work yet, so all images uploaded must be jpgs of size 440x440 pixels.
